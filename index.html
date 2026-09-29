@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calculateur de Tâches – Canopy</title>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0d47a1">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+:root{--p:#0d47a1;--s:#1976d2;--a:#ff9800}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4f8;color:#2c3e50;margin:0;padding:16px;line-height:1.5}
+.box{max-width:950px;margin:auto;background:#fff;padding:24px;border-radius:12px;box-shadow:0 8px 24px #0001}
+h1,h3{color:var(--p)}h1{text-align:center;border-bottom:3px solid var(--s);padding-bottom:8px}
+.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-weight:700;color:var(--p)}
+.top small{font-weight:400;color:#555}button{cursor:pointer;font:inherit}
+.mini{border:1px solid var(--s);background:#fff;color:var(--s);border-radius:6px;padding:4px 10px}.mini:disabled{opacity:.4}
+.tabs{display:flex;gap:8px;margin:16px 0}.tab{flex:1;padding:12px;border:0;border-radius:8px;background:#e0e0e0;font-weight:700}
+.tab.on{background:var(--p);color:#fff}
+.cfg{display:none;grid-template-columns:1fr 1fr;gap:16px;background:#e3f2fd;border-left:5px solid var(--p);padding:16px;border-radius:10px;margin-bottom:20px}
+.cfg.on{display:grid}.cfg label{font-weight:600;display:block}.cfg input{width:100%;box-sizing:border-box;padding:10px;font-size:1.1em;border:1px solid #ccc;border-radius:6px}
+.note{font-size:.85em;color:#555;font-style:italic}
+section{margin-bottom:24px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.card{display:flex;gap:12px;align-items:center;border:2px solid #e0e0e0;border-radius:10px;padding:12px;cursor:pointer}
+.card.on{border-color:var(--s);background:#f1f7fe}.card .chk{width:22px;height:22px}
+.det{flex:1;display:flex;flex-direction:column;gap:4px}.par{font-size:.9em;color:#555}
+.par input,.sp input{width:75px;padding:4px;border:1px solid #ccc;border-radius:4px}
+.sp{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#f1f8e9;border:2px solid #aed581;border-radius:10px;padding:10px;margin-bottom:8px}
+.sp select{flex:1;min-width:180px;padding:6px;border-radius:4px}.sp .x{border:0;background:none;color:#c62828;font-size:1.2em}
+.calc{width:100%;padding:16px;background:var(--s);color:#fff;border:0;border-radius:8px;font-size:1.25em;font-weight:700}
+.calc:hover{background:var(--p)}
+#res{display:none;margin-top:30px;padding:20px;border:2px solid var(--p);border-radius:12px}
+.ban{background:var(--p);color:#fff;padding:18px;border-radius:8px;text-align:center;margin-bottom:20px}.ban h2{color:#fff;margin:6px 0}
+.ban .adj{background:#0003;padding:6px 10px;border-radius:5px;display:inline-block;margin:4px}
+.dg{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.pc{border:1px solid #dee2e6;border-radius:8px;overflow:hidden;background:#f8f9fa}
+.ph{background:var(--s);color:#fff;padding:10px 14px;font-weight:700;display:flex;justify-content:space-between}
+.pt{padding:10px 14px}.tl{padding:7px 0;border-bottom:1px dashed #ccc}.tl:last-child{border:0}
+.tl div:first-child{display:flex;justify-content:space-between;font-weight:600}.tl b.am{color:var(--a)}.tl small{color:#555}
+.pf{background:#e9ecef;padding:10px 14px;text-align:right;font-weight:700;color:var(--p)}
+@media(max-width:700px){.cfg{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.tabs{flex-direction:column}}
+</style></head><body><div class="box">
+<div class="top"><span>Canopy Madagascar</span><span><small id="status">…</small> <button class="mini" onclick="sync()">🔄 Actualiser</button> <button class="mini" onclick="cfg()">⚙️ Source</button></span></div>
+<h1>Calculateur de Tâches Agricoles</h1>
+<div class="tabs"><button class="tab on" id="t1" onclick="setMode(1)">1. J'ai la main-d'œuvre (calculer les arbres)</button>
+<button class="tab" id="t2" onclick="setMode(2)">2. J'ai un objectif d'arbres (calculer la main-d'œuvre)</button></div>
+<div class="cfg on" id="c1"><div><label>👥 Personnes disponibles</label><input type="number" id="w1" value="12" min="1"></div>
+<div><label>⏱️ Tâches par personne</label><input type="number" id="k1" value="2" min="0.5" step="0.1"></div></div>
+<div class="cfg" id="c2"><div><label>🌳 Objectif : arbres à planter (toutes espèces)</label><input type="number" id="n2" value="1000" min="1">
+<div class="note">Le nombre d'ouvriers est arrondi à l'inférieur : l'objectif est ajusté pour avoir des équipes complètes.</div></div>
+<div><label>⏱️ Tâches par personne</label><input type="number" id="k2" value="2" min="0.5" step="0.1"></div></div>
+
+<section><h3>🌱 1. Plantation – espèces à planter</h3>
+<div class="note">Les 2 premières espèces sont pré-remplies depuis le Google Sheet. Ajoutez une 3ᵉ, 4ᵉ espèce si besoin.</div>
+<div id="sp_list"></div>
+<button class="mini" id="sp_add" onclick="addSp()">➕ Ajouter une espèce</button>
+<button class="mini" onclick="eq();renderSp()">⚖️ Répartition égale</button> <span class="note" id="sp_sum"></span></section>
+<section><h3>🚜 2. Activités de terrain</h3><div class="grid" id="g_terrain"></div></section>
+<section><h3>🪴 3. Activités en pépinière</h3><div class="grid" id="g_pepiniere"></div></section>
+<button class="calc" onclick="calculer()">Générer la Distribution des Tâches</button>
+<div id="res"><div class="ban" id="ban"></div><div class="dg" id="grid"></div></div>
+</div>
+<script>
+// URL du Web App Apps Script (modifiable aussi via le bouton ⚙️ Source)
+const API_URL_DEFAULT='https://script.google.com/macros/s/AKfycbyiL1SH271auV3r1g6CR4nhqJXlrMd4mUtuhDpH7DibUDxYFRkBhIcvULG6qGrbUWdD/exec';
+const EAU_DEFAUT=5; // L/arbre si la colonne Unites_Par_Arbre est vide
+const ICO={plantation:'🌱',terrain:'🚜',pepiniere:'🪴'};
+let mode=1,tasks=[],sp=[],st={};
+const $=i=>document.getElementById(i),find=id=>tasks.find(t=>t.id==id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>Math.round(n).toLocaleString('fr-FR'),apiUrl=()=>localStorage.getItem('api')||API_URL_DEFAULT;
+function cfg(){const u=prompt('URL du Web App Apps Script :',apiUrl());if(u){localStorage.setItem('api',u.trim());sync()}}
+function setMode(m){mode=m;[1,2].forEach(i=>{$('t'+i).classList.toggle('on',i==m);$('c'+i).classList.toggle('on',i==m)});$('res').style.display='none'}
+async function sync(){
+ $('status').textContent='⏳ Synchronisation…';
+ try{const r=await fetch(apiUrl()+'?t='+Date.now()),j=await r.json();if(!j.ok)throw new Error(j.error);
+  localStorage.setItem('cache',JSON.stringify(j));load(j,'🟢 Sheet synchronisé à '+new Date().toLocaleTimeString('fr-FR'))}
+ catch(e){const c=localStorage.getItem('cache');c?load(JSON.parse(c),'🟠 Hors-ligne : dernières données'):$('status').textContent='🔴 Échec ('+e.message+') – configurez la source ⚙️'}
+}
+function snap(){document.querySelectorAll('.card').forEach(c=>{const p=c.querySelector('.pt');st[c.dataset.id]={on:c.querySelector('.chk').checked,cap:c.querySelector('.cap').value,pt:p?p.value:null}})}
+function load(j,msg){snap();tasks=j.tasks;$('status').textContent=msg;
+ ['terrain','pepiniere'].forEach(c=>$('g_'+c).innerHTML=tasks.filter(t=>t.categorie==c).map(card).join('')||'<p class="note">Aucune tâche dans le Sheet pour cette catégorie.</p>');
+ const pl=tasks.filter(t=>t.categorie=='plantation');sp=sp.filter(r=>find(r.id));
+ if(!sp.length){sp=pl.slice(0,2).map(t=>({id:t.id,share:0,cap:null}));eq()}renderSp()}
+function card(t){const s=st[t.id]||{on:t.categorie=='terrain'},eau=/^l(itres?)?$/i.test(t.unite),
+ pt=s.pt??t.perTree??(eau?EAU_DEFAUT:1),show=eau||pt!=1;
+ return`<div class="card ${s.on?'on':''}" data-id="${esc(t.id)}"><input type="checkbox" class="chk" ${s.on?'checked':''}><div class="det"><b>${esc(t.nom)}</b>
+ <div class="par"><input type="number" class="cap" min="0" value="${s.cap??t.quota}"> ${esc(t.unite)} / tâche</div>
+ ${show?`<div class="par">Besoin : <input type="number" class="pt" step="0.5" value="${pt}"> ${esc(t.unite)} / arbre</div>`:''}
+ <small>💰 ${fmt(t.prix)} Ar / ${esc(t.unite)}</small></div></div>`}
+document.addEventListener('click',e=>{const c=e.target.closest('.card');if(!c)return;const k=c.querySelector('.chk');if(e.target.tagName!='INPUT')k.checked=!k.checked;if(e.target.type!='number')c.classList.toggle('on',k.checked)});
+function eq(){const n=sp.length,b=Math.floor(1000/n)/10;sp.forEach((r,i)=>r.share=i<n-1?b:+(100-b*(n-1)).toFixed(1))}
+function sumNote(){const s=sp.reduce((a,r)=>a+(+r.share||0),0);$('sp_sum').textContent='Total : '+s.toFixed(1)+' %'+(Math.abs(s-100)>.05?' (sera normalisé à 100 %)':'')}
+function renderSp(){const pl=tasks.filter(t=>t.categorie=='plantation'),used=new Set(sp.map(r=>r.id));
+ $('sp_list').innerHTML=sp.map((r,i)=>{const t=find(r.id);return`<div class="sp" data-i="${i}"><select>${pl.filter(x=>x.id==r.id||!used.has(x.id)).map(x=>`<option value="${esc(x.id)}" ${x.id==r.id?'selected':''}>${esc(x.nom)}</option>`).join('')}</select>
+ <label><input type="number" class="sh" min="0" max="100" step="0.1" value="${r.share}"> %</label>
+ <label><input type="number" class="cp" min="0" value="${r.cap??t.quota}"> ${esc(t.unite)}/tâche</label><button class="x">✖</button></div>`}).join('')||'<p class="note">Aucune tâche de catégorie Plantation dans le Sheet.</p>';
+ $('sp_add').disabled=sp.length>=pl.length;sumNote()}
+function addSp(){const u=new Set(sp.map(r=>r.id)),t=tasks.find(x=>x.categorie=='plantation'&&!u.has(x.id));if(t){sp.push({id:t.id,share:0,cap:null});eq();renderSp()}}
+$('sp_list').addEventListener('input',e=>{const r=sp[e.target.closest('.sp').dataset.i];if(e.target.classList.contains('sh'))r.share=+e.target.value;if(e.target.classList.contains('cp'))r.cap=+e.target.value;sumNote()});
+$('sp_list').addEventListener('change',e=>{if(e.target.tagName=='SELECT'){const r=sp[e.target.closest('.sp').dataset.i];r.id=e.target.value;r.cap=null;renderSp()}});
+$('sp_list').addEventListener('click',e=>{if(e.target.classList.contains('x')){sp.splice(e.target.closest('.sp').dataset.i,1);if(sp.length)eq();renderSp()}});
+
+function calculer(){
+ const acts=[],tot=sp.reduce((a,r)=>a+(+r.share||0),0);
+ sp.forEach(r=>{const t=find(r.id),q=+(r.cap??t.quota),f=tot>0?r.share/tot:1/sp.length;if(q>0&&f>0)acts.push({k:t.id,name:t.nom,cat:'plantation',unit:t.unite,q,e:f/q,f,prix:t.prix})});
+ document.querySelectorAll('.card').forEach(c=>{if(!c.querySelector('.chk').checked)return;const t=find(c.dataset.id),q=+c.querySelector('.cap').value,p=c.querySelector('.pt'),pt=p?+p.value:(t.perTree||1);
+  if(q>0&&pt>0)acts.push({k:t.id,name:t.nom,cat:t.categorie,unit:t.unite,q,e:pt/q,prix:t.prix})});
+ const eff=acts.reduce((a,x)=>a+x.e,0);if(!eff)return alert("Sélectionnez au moins une activité valide (tâches issues du Google Sheet).");
+ let W,K,trees,adj=false,target=0;
+ if(mode==1){W=Math.floor(+$('w1').value);K=+$('k1').value;trees=W*K/eff}
+ else{target=+$('n2').value;K=+$('k2').value;W=Math.floor(target*eff/K);if(W<=0)return alert("Objectif trop bas pour 1 personne avec ce quota.");trees=W*K/eff;adj=Math.abs(target-trees)>.5}
+ if(!(W>0&&K>0))return alert("Valeurs invalides.");
+ acts.forEach(a=>a.rest=trees*a.e);
+ const ws=Array.from({length:W},()=>({cap:K,t:[]}));acts.sort((a,b)=>b.rest-a.rest);let i=0;
+ acts.forEach(a=>{while(a.rest>.001&&i<ws.length){const w=ws[i],x=Math.min(w.cap,a.rest);if(x>0){w.t.push({a,x});w.cap-=x;a.rest-=x}if(w.cap<.001)i++}});
+ const pm={};let cost=0;
+ ws.forEach(w=>{if(!w.t.length)return;const sig=w.t.map(o=>o.x.toFixed(3)+o.a.k).join('|');(pm[sig]=pm[sig]||{n:0,t:w.t}).n++;cost+=w.t.reduce((s,o)=>s+o.x*o.a.q*o.a.prix,0)});
+ const T=Math.floor(trees),spl=acts.filter(a=>a.f).map(a=>`<span class="adj">${esc(a.name)} : ≈ ${Math.round(trees*a.f)}</span>`).join('');
+ $('ban').innerHTML=(mode==1?`<div>Avec ${W} personnes à ${K} tâches/j</div><h2>Vous pouvez planter ${T} arbres aujourd'hui</h2>`
+  :`<div>Pour ~${T} arbres (${K} tâches/j par personne)</div><h2>Il vous faut exactement ${W} personnes</h2>${adj?`<div class="adj">⚠️ Objectif de ${fmt(target)} ajusté à la baisse (équipes complètes).</div>`:''}`)
+  +`<div>${spl}</div>`+(cost>0?`<div class="adj">💰 Coût main-d'œuvre estimé : ${fmt(cost)} Ar</div>`:'');
+ $('grid').innerHTML=Object.values(pm).map((p,n)=>{const pc=p.t.reduce((s,o)=>s+o.x*o.a.q*o.a.prix,0);
+  return`<div class="pc"><div class="ph"><span>Groupe ${n+1}</span><span>👥 ${p.n} personne(s)</span></div><div class="pt">`+p.t.map(o=>`<div class="tl"><div><span>${ICO[o.a.cat]||''} ${esc(o.a.name)}</span><b class="am">${o.x.toFixed(2)} tâches</b></div><small>➔ Réalisera : <b>${Math.round(o.x*o.a.q)} ${esc(o.a.unit)}</b></small></div>`).join('')
+  +`</div><div class="pf">Total : ${p.t.reduce((s,o)=>s+o.x,0).toFixed(2)} tâches${pc>0?` · ${fmt(pc)} Ar/pers.`:''}</div></div>`}).join('');
+ $('res').style.display='block';$('res').scrollIntoView({behavior:'smooth'})}
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
+sync();
+</script></body></html>
