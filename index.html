@@ -65,7 +65,7 @@ section{margin-bottom:24px}.grid{display:grid;grid-template-columns:repeat(auto-
 </div>
 <script>
 const PRIX=8000;            // Ar par tâche
-const DOSE_REF=1.3,PIEDS_REF=100; // 100 pieds à 1,3 kg = 1 tâche
+const DOSE_REF=1.3,PIEDS_REF=100; // 100 pieds à 1,3 kg = 1 tâche(Réf de départ(Réf: BIOZEN: Sac 25 kg Réf Fumier de volaille sacs 50 kg, Dose à réduire pour le fumier de vollailles
 // [espèce, quota pot, quota racines nues]
 const SP=[['Dodonea madagascariensis',80,120],['Trema orientalis',80,120],['Entada chrysostachys',80,120],['Harongana',80,120],['Baie rose',80,120],['Citron',80,120],['Eriobotrya japonica',80,120],['Sakatavilotra',80,120],['Flemingia',560,560],['Titonia',560,560],['Moringa',80,120]];
 const ICO={plantation:'🌱',terrain:'🚜',pepiniere:'🪴'};
@@ -92,7 +92,7 @@ function calculer(){
  const acts=[],tot=sp.reduce((a,r)=>a+(+r.share||0),0);let nues=0,pot=0;
  sp.forEach(r=>{const f=tot>0?r.share/tot:1/sp.length,q=+(r.cap??qOf(r));if(q>0&&f>0){acts.push({k:'p'+r.i,name:'Plantation '+SP[r.i][0]+(r.mode=='nues'?' (racines nues)':' (pot)'),cat:'plantation',unit:'arbres',q,e:f/q,f});r.mode=='nues'?nues+=f:pot+=f}});
  if($('k126').checked&&nues>0)acts.push({k:'126',name:'126_1 Dépotage/effeuillage racines nues',cat:'pepiniere',unit:'plants',q:660,e:nues/660});
- if($('k311').checked&&pot>0)acts.push({k:'311',name:'311 Charg-déchargement caissettes',cat:'pepiniere',unit:'plants',q:1000,e:pot/1000});
+ if($('k311').checked&&pot>0)acts.push({k:'311',name:'311 et 312 Charg-déchargement caissettes',cat:'pepiniere',unit:'plants',q:900,e:pot/900});
  const q802=+$('q802').value,dose=+$('dose').value,lpt=+$('lpt').value,q402=PIEDS_REF*DOSE_REF/dose;
  if($('k802').checked&&q802>0)acts.push({k:'802',name:'802 Arrosage des plants sur terrain',cat:'terrain',unit:'plants',q:q802,e:1/q802});
  if($('k402').checked&&dose>0)acts.push({k:'402',name:"402_5 Transport d'engrais au trou",cat:'terrain',unit:'pieds',q:q402,e:1/q402,dose});
@@ -119,4 +119,5 @@ function calculer(){
  $('res').style.display='block';$('res').scrollIntoView({behavior:'smooth'})}
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
 renderSp();
+if('serviceWorker' in=(mode==2=/ W=Match;{let(mode==1){W=watch.floor(=+('W1')return alert("valeur unit)
 </script></body></html>
